@@ -42,6 +42,7 @@ public class SecureChatServerHandler extends SimpleChannelInboundHandler<String>
                 new GenericFutureListener<Future<Channel>>() {
                     @Override
                     public void operationComplete(Future<Channel> future) throws Exception {
+                    	ctx.writeAndFlush(new Integer(1));
                         ctx.writeAndFlush(
                                 "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure chat service!\n");
                         ctx.writeAndFlush(
@@ -76,4 +77,5 @@ public class SecureChatServerHandler extends SimpleChannelInboundHandler<String>
         cause.printStackTrace();
         ctx.close();
     }
+    
 }
