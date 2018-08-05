@@ -1,11 +1,17 @@
 package newServer.handlers;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.ShortBufferException;
 
+import newServer.datagram.ChatMessage;
+import newServer.datagram.ClientDatagram;
+import newServer.encryption.Noise.CipherStatePair;
 import newServer.encryption.Noise.HandshakeState;
 import newServer.encryption.Noise.Noise;
 
@@ -42,15 +48,37 @@ public class test {
 		System.out.println("\nClient 1 reading msg");
 		client1.readMessage(client2output, 0, buffer, 0, len);
 		System.out.println("\nReceived message: " + new String(buffer, 0, len));
-		
+
 		String msgthree = "Client 1 Details";
 		byte[] msgthreebytes = msgthree.getBytes();
 		System.out.println("\nClient 1 reply: <- s // Message = " + msgthree);
 		len = client1.writeMessage(msgthreebytes, 0, client1output, 0, msgthreebytes.length);
-		
+
 		System.out.println("\nClient 2 reading msg");
 		client2.readMessage(client1output, 0, buffer, 0, len);
 		System.out.println("\nReceived message: " + new String(buffer, 0, len));
+
+		CipherStatePair client1pair = client1.split();
+		CipherStatePair client2pair = client2.split();
+
+		String msg = "Welcome";
+		byte[] msgbytes = msg.getBytes();
+		len = client1pair.getSender().encryptWithAd(null, msgbytes, 0, client1output, 0, msgbytes.length);
+		client2pair.getSender().decryptWithAd(null, client1output, 0, buffer, 0, len);
+
+		System.out.println("\nReceived message: " + new String(buffer, 0, len));
+		
+		ClientDatagram c = new ClientDatagram("hi", "bye", new ChatMessage("hi", "hihi"));
+		ByteArrayInputStream bis = new ByteArrayInputStream(c.getPayload());
+		try {
+			ObjectInputStream in = new ObjectInputStream(bis);
+			ChatMessage chat = (ChatMessage) in.readObject();
+			System.out.println(chat.getTextMsg());
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		
 	}
 
