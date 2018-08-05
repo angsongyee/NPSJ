@@ -12,10 +12,10 @@ public class HandshakeState {
 	private String[] pattern;
 	private int patternPos;
 	private byte[] prologue;
-	public DHState localStatic;
-	public DHState localEphemeral;
-	public DHState remoteStatic;
-	public DHState remoteEphemeral;
+	private DHState localStatic;
+	private DHState localEphemeral;
+	private DHState remoteStatic;
+	private DHState remoteEphemeral;
 	private State action;
 
 	private enum State {
@@ -48,14 +48,15 @@ public class HandshakeState {
 		}
 	}
 
-	public int writeMessage(byte[] payload, int payloadOffset, byte[] message, int messageOffset, int payloadLength) throws ShortBufferException {
+	public int writeMessage(byte[] payload, int payloadOffset, byte[] message, int messageOffset, int payloadLength)
+			throws ShortBufferException {
 
 		int messagePosn = messageOffset;
 
 		if (messageOffset > message.length) {
 			throw new ShortBufferException();
 		}
-		
+
 		if (action != State.WRITE)
 			throw new IllegalStateException("Handshake not supposed to be in write state");
 		for (;;) {
@@ -70,7 +71,7 @@ public class HandshakeState {
 			int space = message.length - messagePosn;
 			if (space < 0)
 				throw new ShortBufferException();
-			
+
 			if (messagePattern.equals("next")) {
 				action = State.READ;
 				break;
@@ -84,7 +85,8 @@ public class HandshakeState {
 				localEphemeral.generateKeyPair();
 
 				int length = localEphemeral.getPublicKeyLength();
-				if (space < length) throw new ShortBufferException();
+				if (space < length)
+					throw new ShortBufferException();
 				localEphemeral.getPublicKey(message, messagePosn);
 				symState.mixHash(message, messagePosn, length);
 				messagePosn += length;
@@ -96,7 +98,8 @@ public class HandshakeState {
 					throw new IllegalStateException("Local static keypair not initialized.");
 
 				int length = localStatic.getPublicKeyLength();
-				if (space < length) throw new ShortBufferException();
+				if (space < length)
+					throw new ShortBufferException();
 				localStatic.getPublicKey(message, messagePosn);
 				messagePosn += symState.encryptAndHash(message, messagePosn, message, messagePosn, length);
 				break;
@@ -136,15 +139,17 @@ public class HandshakeState {
 		return messagePosn;
 	}
 
-	public int readMessage(byte[] message, int messageOffset, byte[] payload, int payloadOffset, int messageLength) throws ShortBufferException, BadPaddingException {
+	public int readMessage(byte[] message, int messageOffset, byte[] payload, int payloadOffset, int messageLength)
+			throws ShortBufferException, BadPaddingException {
 
 		if (action != State.READ)
 			throw new IllegalStateException("Handshake not supposed to be in read state");
-		
+
 		int messageEnd = messageOffset + messageLength;
-		
-		if (messageEnd > message.length) throw new ShortBufferException();
-		
+
+		if (messageEnd > message.length)
+			throw new ShortBufferException();
+
 		for (;;) {
 			if (patternPos >= pattern.length) {
 				action = State.SPLIT;
@@ -162,13 +167,13 @@ public class HandshakeState {
 			case "e": {
 				if (remoteEphemeral.hasPublicKey())
 					throw new IllegalStateException("Ephemeral key already exists.");
-				
+
 				int keyLen = remoteEphemeral.getPublicKeyLength();
 				if (message.length < keyLen)
 					throw new ShortBufferException();
 
 				remoteEphemeral.setPublicKey(message, messageOffset);
-				
+
 				symState.mixHash(message, messageOffset, keyLen);
 				messageOffset += keyLen;
 				break;
@@ -210,7 +215,8 @@ public class HandshakeState {
 			}
 			}
 		}
-		int payloadLength = symState.decryptAndHash(message, messageOffset, payload, payloadOffset, messageEnd - messageOffset);
+		int payloadLength = symState.decryptAndHash(message, messageOffset, payload, payloadOffset,
+				messageEnd - messageOffset);
 		return payloadLength;
 	}
 

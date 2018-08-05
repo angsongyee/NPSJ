@@ -16,7 +16,9 @@
 package newServer;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -27,13 +29,18 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 import newServer.datagram.ClientDatagram;
 import newServer.datagram.ServerDatagram;
 
 /**
  * Simple SSL chat client modified from {@link TelnetClient}.
  */
-public final class SecureChatClient {
+public final class SecureChatClient extends Application {
 
 	static final String HOST = System.getProperty("host", "127.0.0.1");
 	static final int PORT = Integer.parseInt(System.getProperty("port", "8992"));
@@ -64,7 +71,8 @@ public final class SecureChatClient {
 					System.out.println("ok");
 					lastWriteFuture = ch.writeAndFlush(new ServerDatagram("Hi"));
 				} else if (line.equalsIgnoreCase("cdg")) {
-					lastWriteFuture = ch.writeAndFlush(new ClientDatagram());
+					lastWriteFuture = ch.writeAndFlush(new ClientDatagram(line, line, null));
+					ClientDatagram c = new ClientDatagram("hi", "bye", null);
 				} else {
 					// Sends the received line to the server.
 					lastWriteFuture = ch.writeAndFlush(line + "\r\n");
@@ -87,6 +95,22 @@ public final class SecureChatClient {
 		{
 			// The connection is closed automatically on shutdown.
 			group.shutdownGracefully();
+		}
+	}
+
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("Lobby.fxml"));
+			AnchorPane root = (AnchorPane) loader.load();
+			Scene scene = new Scene(root);
+			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			primaryStage.setTitle("SecuChat");
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+
 		}
 	}
 }

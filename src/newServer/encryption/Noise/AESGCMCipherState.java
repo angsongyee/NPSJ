@@ -63,7 +63,8 @@ public class AESGCMCipherState implements CipherState {
 				GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, getIv());
 				cipher.init(Cipher.ENCRYPT_MODE, k, gcmParamSpec, new SecureRandom());
 
-				cipher.updateAAD(ad);
+				if (ad != null)
+					cipher.updateAAD(ad);
 				result = cipher.doFinal(plaintext, plaintextOffset, length);
 				System.arraycopy(result, 0, ciphertext, ciphertextOffset, result.length);
 			} catch (IllegalBlockSizeException e) {
@@ -91,10 +92,11 @@ public class AESGCMCipherState implements CipherState {
 			try {
 				GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, getIv());
 				cipher.init(Cipher.DECRYPT_MODE, k, gcmParamSpec, new SecureRandom());
-				
-				cipher.updateAAD(ad);
+
+				if (ad != null)
+					cipher.updateAAD(ad);
 				result = cipher.doFinal(ciphertext, ciphertextOffset, length);
-				
+
 				System.arraycopy(result, 0, plaintext, plaintextOffset, result.length);
 			} catch (IllegalBlockSizeException e) {
 				e.printStackTrace();

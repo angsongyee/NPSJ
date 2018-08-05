@@ -8,6 +8,5 @@ public class ServerDatagramHandler extends SimpleChannelInboundHandler<ServerDat
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, ServerDatagram msg) throws Exception {
-		System.err.println("Server datagram received");
 	}
 }

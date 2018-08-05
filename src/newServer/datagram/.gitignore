@@ -1,2 +1,9 @@
 /ServerDatagram.class
 /ClientDatagram.class
+/ServerDatagram$Actions.class
+/ChatMessage.class
+/ChatMessage$Type.class
+/SplitFile.class
+/NoiseHandshake.class
+/ClientStateMessage.class
+/ClientStateMessage$Action.class
